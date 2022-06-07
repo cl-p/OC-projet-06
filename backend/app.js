@@ -1,15 +1,16 @@
 const express = require('express');
 const saucesRoutes = require('./router/route_sauces')
-const testRouter = require('./router/test')
+const userRoutes = require('./router/route_user')
+const path = require('path');
+const auth = require('./middleware/auth')
 const app = express();
 
 // mongoose est un module pour se connecter à une instance (là où est hébergé ma bdd) mongoDB
 const mongoose = require('mongoose');
 const Sauces = require('./models/sauces');
 app.use(express.json());
-// si la req http reçue commence par cette URL (après le domaine), le routeur s'occupe de trier ce qui vient après api/sauces
-app.use('/api/sauces', saucesRoutes)
-app.use('/api/test', testRouter)
+app.use('/images', express.static(path.join(__dirname, 'images')))
+
 mongoose.connect('mongodb+srv://clementine:Chouquette21@testcoursoc.4dqoggy.mongodb.net/?retryWrites=true&w=majority', 
 { useNewUrlParser: true,
   useUnifiedTopology: true 
@@ -18,6 +19,9 @@ mongoose.connect('mongodb+srv://clementine:Chouquette21@testcoursoc.4dqoggy.mong
 }).catch( (err) => {
   console.log(err)
 } )
+
+// ajout du middleware d'authentification
+app.use(auth)
 
 // Ci-dessous, le code pour les CORS
 // ces headers permettent d'accéder à notre API depuis n'importe quelle origine 
@@ -32,7 +36,9 @@ app.use((req, res, next) => {
 
 
 
-
+// si la req http reçue commence par cette URL (après le domaine), le routeur s'occupe de trier ce qui vient après api/sauces
+app.use('/api/sauces', saucesRoutes)
+app.use('/api/auth', userRoutes )
 
 
 module.exports = app;

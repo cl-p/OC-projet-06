@@ -1,9 +1,16 @@
 const Sauces = require('../models/sauces');
 
 exports.createSauces = (req, res, next) => {
+  // Pour ajouter un fichier à la requête, le front-end doit envoyer les données de la requête sous la forme form-data, et non sous forme de JSON
+  const sauceObject = JSON.parse(req.body.sauces);
+  delete sauceObject._id;
   const sauces = new Sauces({
-   ...req.body
+    ...sauceObject,
+    // req.protocole --> segment http de l'url de l'image
+    // req.get('host') --> segment pour ajouter l'hôte du server à l'url de l'image
+    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
   });
+  // save renvoie une promesse
   sauces.save().then(
     () => {
       res.status(201).json({
@@ -20,6 +27,7 @@ exports.createSauces = (req, res, next) => {
 };
 
 exports.getOneSauce = (req, res, next) => {
+    // findOne renvoie une promesse
     Sauces.findOne({
       _id: req.params.id
     }).then(
@@ -35,42 +43,43 @@ exports.getOneSauce = (req, res, next) => {
     );
   };
   
-  exports.modifySauce = (req, res, next) => {
-    const sauces = new Sauces({
-      ... req.body
-    });
-    Sauces.updateOne({_id: req.params.id}, thing).then(
-      () => {
-        res.status(201).json({
-          message: 'Updated successfully!'
-        });
-      }
-    ).catch(
-      (error) => {
-        res.status(400).json({
-          error: error
-        });
-      }
-    );
-  };
   
   exports.deleteSauce = (req, res, next) => {
-    Sauces.deleteOne({_id: req.params.id}).then(
-      () => {
-        res.status(200).json({
-          message: 'Deleted!'
-        });
+    // on récupére la sauce dans la bdd, puis on vérife qu'elle appartient à l'utilisateur
+    // si oui, on la supprime   
+    // sinon, on retourne une erreur 
+    Sauces.findOne({ _id: req.params.id }).then(
+      (sauce) => {
+        if (!sauce) {
+          res.status(404).json({
+            error: new Error('Erreur!')
+          });
+        }
+        if (sauce.userId !== req.auth.userId) {
+          res.status(400).json({
+            error: new Error('Unauthorized request!')
+          });
+        }
+        Sauces.deleteOne({ _id: req.params.id }).then(
+          () => {
+            res.status(200).json({
+              message: 'Deleted!'
+            });
+          }
+        ).catch(
+          (error) => {
+            res.status(400).json({
+              error: error
+            });
+          }
+        );
       }
-    ).catch(
-      (error) => {
-        res.status(400).json({
-          error: error
-        });
-      }
-    );
+    )
   };
+
   
   exports.getAllSauces = (req, res, next) => {
+      // find renvoie une promesse
     Sauces.find().then(
       (things) => {
         res.status(200).json(things);
