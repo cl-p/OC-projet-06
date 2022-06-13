@@ -1,15 +1,39 @@
 const Sauces = require('../models/sauces');
+const fs = require('fs')
 
 exports.createSauces = (req, res, next) => {
   // Pour ajouter un fichier à la requête, le front-end doit envoyer les données de la requête sous la forme form-data, et non sous forme de JSON
-  const sauceObject = JSON.parse(req.body.sauces);
-  delete sauceObject._id;
+  const sauceObject = JSON.parse(req.body.sauce);
+  console.log(sauceObject)
+  // delete sauceObject._id;
   const sauces = new Sauces({
-    ...sauceObject,
+    name: sauceObject.name,
+    manufacturer: sauceObject.manufacturer,
+    description: sauceObject.description,
+    mainPepper: sauceObject.mainPepper,
+    heat: sauceObject.heat,
+    // pour likes et dislikes on leur met une valeur par defaut 
+    likes: 0,
+    dislikes: 0,
+    usersDisliked: [],
+    usersLiked: [],
+
+
+
+
+    // attention à changer car juste valeur test
+    userId: '0',
+
+
+
+
+
+
     // req.protocole --> segment http de l'url de l'image
     // req.get('host') --> segment pour ajouter l'hôte du server à l'url de l'image
     imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
   });
+  console.log(sauces)
   // save renvoie une promesse
   sauces.save().then(
     () => {
@@ -25,6 +49,9 @@ exports.createSauces = (req, res, next) => {
     }
   );
 };
+
+
+
 
 exports.getOneSauce = (req, res, next) => {
     // findOne renvoie une promesse
@@ -43,6 +70,9 @@ exports.getOneSauce = (req, res, next) => {
     );
   };
   
+  
+
+
   
   exports.deleteSauce = (req, res, next) => {
     // on récupére la sauce dans la bdd, puis on vérife qu'elle appartient à l'utilisateur
@@ -81,11 +111,12 @@ exports.getOneSauce = (req, res, next) => {
   exports.getAllSauces = (req, res, next) => {
       // find renvoie une promesse
     Sauces.find().then(
-      (things) => {
-        res.status(200).json(things);
+      (sauce) => {
+        res.status(200).json(sauce);
       }
     ).catch(
       (error) => {
+        console.log(error)
         res.status(400).json({
           error: error
         });

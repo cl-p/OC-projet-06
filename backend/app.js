@@ -2,13 +2,16 @@ const express = require('express');
 const saucesRoutes = require('./router/route_sauces')
 const userRoutes = require('./router/route_user')
 const path = require('path');
-const auth = require('./middleware/auth')
+// const auth = require('./middleware/auth')
 const app = express();
 
 // mongoose est un module pour se connecter à une instance (là où est hébergé ma bdd) mongoDB
 const mongoose = require('mongoose');
 const Sauces = require('./models/sauces');
 app.use(express.json());
+
+
+
 app.use('/images', express.static(path.join(__dirname, 'images')))
 
 mongoose.connect('mongodb+srv://clementine:Chouquette21@testcoursoc.4dqoggy.mongodb.net/?retryWrites=true&w=majority', 
@@ -20,8 +23,8 @@ mongoose.connect('mongodb+srv://clementine:Chouquette21@testcoursoc.4dqoggy.mong
   console.log(err)
 } )
 
-// ajout du middleware d'authentification
-app.use(auth)
+// // ajout du middleware d'authentification
+// app.use(auth)
 
 // Ci-dessous, le code pour les CORS
 // ces headers permettent d'accéder à notre API depuis n'importe quelle origine 
