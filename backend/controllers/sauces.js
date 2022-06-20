@@ -86,7 +86,8 @@ exports.getOneSauce = (req, res, next) => {
         }
         
         const filename = sauce.imageUrl.split('/images/')[1];
-        fs.unlink(`images/${filename}`, () => {
+        fs.unlink(`images/${filename}`, (err) => {
+          console.log(err)
           Sauces.deleteOne({ _id: req.params.id })
             .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
             .catch(error => res.status(400).json({ error }));
@@ -127,4 +128,20 @@ exports.getOneSauce = (req, res, next) => {
         });
       }
     );
+  };
+
+
+  exports.likeOrDislike = (req, res, next) => {
+    // mettre en place la possibilité pour l'utilisateur de mettre un like ou un dislike sur une sauce
+    // si l'utilisateur clique sur like, ajoute +1 au nb de like et idem pour dislike
+    // a chaque click sur like/dislike, l'id de l'utilisateur qui a donné son avis est stocké dans un tableau
+    // si utilisateur reclick, son id sera supprimé du tableau 
+    // l'utilisateur ne peut mettre qu'une seule valeur pour chaque sauce 
+    // mise à jour du total like et dislike à chaque click sur l'îcone 
+
+
+
+
+
+
   };
