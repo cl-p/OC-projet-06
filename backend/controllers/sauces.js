@@ -18,16 +18,8 @@ exports.createSauces = (req, res, next) => {
     usersDisliked: [],
     usersLiked: [],
 
-
-
-
-    // attention à changer car juste valeur test
-    userId: '0',
-
-
-
-
-
+    // on récupère l'id qui a été créé précédemment dans le middleware
+    userId: req.auth.userId,
 
     // req.protocole --> segment http de l'url de l'image
     // req.get('host') --> segment pour ajouter l'hôte du server à l'url de l'image
@@ -43,6 +35,7 @@ exports.createSauces = (req, res, next) => {
     }
   ).catch(
     (error) => {
+      console.log(error)
       res.status(400).json({
         error: error
       });
@@ -63,6 +56,7 @@ exports.getOneSauce = (req, res, next) => {
       }
     ).catch(
       (error) => {
+        console.log(error)
         res.status(404).json({
           error: error
         });
@@ -90,24 +84,35 @@ exports.getOneSauce = (req, res, next) => {
             error: new Error('Unauthorized request!')
           });
         }
-        Sauces.deleteOne({ _id: req.params.id }).then(
-          () => {
-            res.status(200).json({
-              message: 'Deleted!'
-            });
-          }
-        ).catch(
-          (error) => {
-            res.status(400).json({
-              error: error
-            });
-          }
-        );
-      }
-    )
-  };
+        
+        const filename = sauce.imageUrl.split('/images/')[1];
+        fs.unlink(`images/${filename}`, () => {
+          Sauces.deleteOne({ _id: req.params.id })
+            .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
+            .catch(error => res.status(400).json({ error }));
+        });
+    })
+    .catch(error => res.status(500).json({ error }));
+};
+   
 
   
+  exports.modifySauce = (req, res, next) => {
+    const sauceObject = req.file ?
+      {
+        ...JSON.parse(req.body.sauce),
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+      } : { ...req.body };
+    Sauces.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+      .then(() => 
+        res.status(200).json({ message: 'Objet modifié !'})
+      )
+      .catch(error => 
+        res.status(400).json({ error })
+      );
+  };
+
+
   exports.getAllSauces = (req, res, next) => {
       // find renvoie une promesse
     Sauces.find().then(

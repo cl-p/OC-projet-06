@@ -14,6 +14,11 @@ module.exports = (req, res, next) => {
     const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
     const userId = decodedToken.userId;
 
+    // on crée la propriété "auth" sur la requête de type objet (qui contient la propriété userId)
+    req.auth = {
+      userId: userId
+    }
+
     if (req.body.userId && req.body.userId !== userId) {
       throw 'Invalid user ID';
     } else {
