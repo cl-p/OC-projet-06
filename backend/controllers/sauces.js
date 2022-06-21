@@ -139,9 +139,73 @@ exports.getOneSauce = (req, res, next) => {
     // l'utilisateur ne peut mettre qu'une seule valeur pour chaque sauce 
     // mise à jour du total like et dislike à chaque click sur l'îcone 
 
+    // d'abord il faut récupérer la sauce 
+    // récuperer id user 
 
+    Sauces.findOne({ _id: req.params.id }).then(
+      (s) => {
+        let nblike = req.body.like
+        if (nblike === 1){
 
+          like(s, req.auth.userId);
+        }
+        else if(nblike === -1 ){
 
-
-
+          dislike(s, req.auth.userId);
+        }
+        else {
+          removeVote(s, req.auth.userId)
+        }
+        
+        // .save permet de mettre à jour la sauce 
+        s.save().then(() => 
+          res.status(200).json({ message: 'Objet modifié !'})
+        )
+        .catch(error => { 
+          console.log(error);
+          res.status(400).json({ error })
+        })
+      }).catch(error => {
+        console.log(error)
+        res.status(400).json({
+          error: error
+        });
+      })
   };
+
+
+  // fonction permettant d'ajouter l'id de l'utilisateur et d'incrémenter le nombre de likes
+  function like(sauce, idUserWhoVoted){
+    let i = sauce.usersLiked.findIndex((e)=> e === idUserWhoVoted)
+    if(i === -1){
+      sauce.usersLiked.push(idUserWhoVoted)
+      sauce.likes = sauce.likes + 1
+    }
+  }
+
+
+  // fonction permettant d'ajouter l'id de l'utilisateur et d'incrémenter le nombre de dislikes
+  function dislike(sauce, idUserWhoVoted){
+    let i = sauce.usersDisliked.findIndex((e)=> e === idUserWhoVoted)
+    if(i === -1){
+      sauce.usersDisliked.push(idUserWhoVoted)
+      sauce.dislikes = sauce.dislikes + 1
+    }
+        
+  }
+  
+  // fonction permettant de d'enlever l'id de l'utilisateur dès qu'il retire son vote, et de décrémenter like ou dislike
+  function removeVote(sauce, idUserWhoVoted){
+    let i = sauce.usersLiked.findIndex((e)=> e === idUserWhoVoted)
+    if(i != -1){
+      sauce.usersLiked.splice(i, 1 )
+      sauce.likes = sauce.likes - 1
+    }
+
+    i = sauce.usersDisliked.findIndex((e)=> e === idUserWhoVoted)
+    if(i != -1){
+      sauce.usersDisliked.splice(i, 1 )
+      sauce.dislikes = sauce.dislikes - 1
+    }
+    
+  }
