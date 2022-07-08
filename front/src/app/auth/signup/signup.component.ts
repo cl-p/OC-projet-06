@@ -27,21 +27,26 @@ export class SignupComponent implements OnInit {
   }
 
   onSignup() {
-    this.loading = true;
     const email = this.signupForm.get('email')!.value;
     const password = this.signupForm.get('password')!.value;
-    this.auth.createUser(email, password).pipe(
-      switchMap(() => this.auth.loginUser(email, password)),
-      tap(() => {
-        this.loading = false;
-        this.router.navigate(['/sauces']);
-      }),
-      catchError(error => {
-        this.loading = false;
-        this.errorMsg = error.message;
-        return EMPTY;
-      })
-    ).subscribe();
+    if (password.length < 8) {
+      this.errorMsg = "Votre mot de passe ne correspond pas aux exigences de sécurité";
+    }
+    else {
+      this.loading = true;
+      this.auth.createUser(email, password).pipe(
+        switchMap(() => this.auth.loginUser(email, password)),
+        tap(() => {
+          this.loading = false;
+          this.router.navigate(['/sauces']);
+        }),
+        catchError(error => {
+          this.loading = false;
+          this.errorMsg = error.error.error;
+          return EMPTY;
+        })
+      ).subscribe();
+    }
   }
 
 }

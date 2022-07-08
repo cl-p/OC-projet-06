@@ -2,9 +2,12 @@ const express = require('express');
 const saucesRoutes = require('./router/route_sauces')
 const userRoutes = require('./router/route_user')
 const path = require('path');
+const helmet = require("helmet");
 // const auth = require('./middleware/auth')
 const app = express();
-
+app.use(helmet({ crossOriginResourcePolicy: {
+  policy: "same-site"
+} }));
 // mongoose est un module pour se connecter à une instance (là où est hébergé ma bdd) mongoDB
 const mongoose = require('mongoose');
 const Sauces = require('./models/sauces');
